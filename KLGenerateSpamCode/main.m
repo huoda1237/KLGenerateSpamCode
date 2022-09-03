@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #include <stdlib.h>
+#import  <objc/runtime.h>
 
 // 命令行修改工程目录下所有 png 资源 hash 值
 // 使用 ImageMagick 进行图片压缩，所以需要安装 ImageMagick，安装方法 brew install imagemagick
@@ -29,6 +30,15 @@ void deleteComments(NSString *directory, NSArray<NSString *> *ignoreDirNames);
 void modifyProjectName(NSString *projectDir, NSString *oldName, NSString *newName);
 void modifyClassNamePrefix(NSMutableString *projectContent, NSString *sourceCodeDir, NSArray<NSString *> *ignoreDirNames, NSString *oldName, NSString *newName);
 void getAllCategory(NSMutableString *projectContent, NSString *sourceCodeDir, NSArray<NSString *> *ignoreDirNames, NSString *oldName, NSString *newName);
+NSString * createSingleProperty(void);
+NSString * createMuchProperty(void);
+NSString * createMethod(void);
+NSString * clasStr(void);
+void createNewFile(NSString *outDirectory);
+void addMethodToMFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
+NSString * createSingleMethod(void);
+void addPropertytoOriginalFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
+void getMethodBackType(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
 
 NSString *gOutParameterName = nil;
 NSString *gSpamCodeFuncationCallName = nil;
@@ -36,7 +46,11 @@ NSString *gNewClassFuncationCallName = nil;
 NSString *gSourceCodeDir = nil;
 NSString *gOriginFileName = nil;
 NSMutableArray *categoryArr = nil;
-
+NSArray *chartArray = nil;
+NSArray *backArray = nil;
+NSArray *propertyArray = nil;
+NSMutableArray *methodPreArr = nil;
+NSArray *allSearchArray = nil;
 
 static NSString * const kNewClassDirName = @"NewClass";
 
@@ -122,6 +136,11 @@ void renameFile(NSString *oldPath, NSString *newPath) {
 int main(int argc, const char * argv[]) {
     
     @autoreleasepool {
+        allSearchArray = @[@"- (void)",@"+ (instancetype)",@"+ (void)",@"+ (PHAssetCollection *)",@"- (NSString *)",@"+(NSURLSessionTask *)",@"+(void)",@"+ (BOOL)",@"+ (NSString *)",@"+ (NSMutableArray *)",@"+(BOOL)",@"- (instancetype)",@"-(void)",@"- (id)",@"+(NSDictionary *)",@"+(NSString *)",@"+(NSArray *)",@"+ (NSDate *)",@"+ (UIViewController *)",@"+ (UIImage *)",@"- (NSMutableDictionary *)",@"+(instancetype)",@"+ (NSDictionary *)",@"+ (id)",@"- (UIImageView *)",@"- (UIButton *)",@"- (WKWebView *)",@"-(NSMutableArray *)",@"-(BOOL)",@"-(UITableViewCell *)",@"-(UIView *)",@"-(UIViewController *)",@"- (UIViewController *)",@"-(NSMutableData *)",@"-(dispatch_queue_t)",@"- (NSData *)",@"- (NSDictionary *)",@"+ (ambaStateMachine *)",@"-(NSThread *)",@"- (nullable UIImage *)",@"- (BOOL)",@"- (CMTime)",@"- (UIInterfaceOrientationMask)",@"- (UIInterfaceOrientation)",@"- (IBAction)",@"- (UICollectionViewCell *)",@"+ (Class)",@"-(NSString *)",@"- (UIStackView *)",@"- (NSArray *)",@"- (id<NSCoding>)",@"+ (NSData *)",@"- (sqlite3_stmt *)",@"- (NSMutableArray *)",@"+ (NSError *)",@"- (Class)",@"+ (NSMutableDictionary *)",@"- (NSURL *)",@"+ (NSSet *)",@"- (nonnull CLLocation *)",@"+ (nullable CLLocation *)",@"- (UIColor *)",@"- (dispatch_queue_t)",@"- (NSError *)",@"- (CFReadStreamRef)",@"- (CFWriteStreamRef)",@"+ (nullable instancetype)",@"+ (NSURL *)",@"-(instancetype)",@"- (FMDatabase*)",@"- (NSError*)",@"- (FMResultSet *)",@"- (NSString*)",@"- (NSData*)",@"- (NSDate*)",@"- (FMResultSet*)",@"- (FMStatement*)",@"- (NSDate *)",@"+ (NSString*)",@"+ (NSDateFormatter *)",@"- (NSDictionary*)",@"+(id)",@"- (UILabel *)",@"- (UIView *)",@"- (CAGradientLayer *)",@"- (CAShapeLayer *)",@"- (UITableView *)",@"- (UIScrollView *)",@"- (UITableViewCell *)",@"-(NSLock *)",@"-(NSCondition *)",@"- (UICollectionView *)",@"- (CFYPanoramaView *)",@"- (CFYTimeDelayView *)",@"- (ZJSettingsTypeModel *)",@"- (CFYTimeDelayIntroduceView *)",@"-(NSArray *)",@"- (MKAnnotationView *)",@"- (MKOverlayRenderer *)",@"-(ZJFlyModeManagerView *)",@"-(TispView*) ",@"-(UIImageView *)",@"- (NSMutableArray*)",@"- (CFYTimerTool *)",@"-(UIImage *)",@"- (CFYButton *)",@"-(id)",@"- (NSMutableAttributedString *)",@"- (NSArray*)",@"+ (UIColor*)",@"+ (NSArray *)",@"-(UILabel *)",@"-(UIButton *)",@"-(UICollectionView *)",@"- (UIActivityIndicatorView *)",@"-(void )",@"-(NSString*)",@"- (ALAssetsLibrary *)",@"- (PHAssetCollection *)",@"- (NSMutableData *)",@"-(NSData *)",@"- (void )",@"-(NSMutableArray*)",@"-(UICollectionViewCell *)",@"-(UIEdgeInsets)",@"-(UITableViewCellEditingStyle)",@"- (UICollectionReusableView *)",@"- (UIBezierPath *)",@"+ (UIFont*)",@"+ (UILabel*)",@"+ (UIImage*)",@"- (CAShapeLayer*)",@"- (UIColor*)",@"- (UIImage*)",@"- (UIControl*)",@"- (UIView*)",@"- (UILabel*)",@"- (UIImageView*)",@"- (NSAttributedString *)",@"- (UIToolbar *)",@"- (UIBarButtonItem *)",@"- (UIFont *)",@"-(CABasicAnimation *)",@"+ (AppDelegate *)",@"- (UIImage *)",@"+ (UIEdgeInsets)",@"-(MKOverlayRenderer *)",@"+ (NSArray<NSString *> *)",@"-(AVMutableComposition *)",@"-(NSURL *)",@"+ (cv::Mat)",@"- (CVPixelBufferRef)",@"-(cv::Mat)",@"- (cv::Mat)",@"+ (CVPixelBufferRef)",@"-(UIImage*)",@"+ (UIColor *)",@"+ (UIStatusBarStyle)",@"- (dispatch_source_t)",@"-(NSMutableDictionary *)",@"- (NSURLSessionDownloadTask *)",@"-(MKCoordinateRegion)",@"- (MKCoordinateSpan)"];
+        methodPreArr = [NSMutableArray new];
+        chartArray = @[@"A",@"B",@"C",@"D",@"E",@"F",@"G",@"H",@"I",@"J",@"K",@"L",@"M",@"N",@"O",@"P",@"Q",@"R",@"S",@"T",@"U",@"V",@"W",@"X",@"Y",@"Z",@"a",@"b",@"c",@"d",@"e",@"f",@"g",@"h",@"i",@"j",@"k",@"l",@"m",@"n",@"o",@"p",@"q",@"r",@"s",@"t",@"u",@"v",@"w",@"x",@"y",@"z",@"0",@"1",@"2",@"3",@"4",@"5",@"6",@"7",@"8",@"9",@"_",@"Cfy",@"Cfly",@"Cfly2",@"Ctu",@"Start",@"Fly",@"Num",@"ChangTu",@"ZhiNeng",@"GuangZhou",@"Drone"];
+        backArray =  @[@"NSArray",@"NSDictionary",@"NSString"];
+        propertyArray = @[@"UIButton",@"UITableView",@"UILabel",@"UIView",@"NSInteger",@"int",@"BOOL",@"NSString",@"NSDictionary",@"NSArray",@"NSMutableArray"];
         
         categoryArr = [[NSMutableArray alloc] init];
         
@@ -282,7 +301,9 @@ int main(int argc, const char * argv[]) {
             }
         }
         
-        //获取文件中的所有分类
+        
+        //下面两个方法是辅助使用的，正式混淆的时候不需要使用
+        //获取文件中的所有分类（单独获取用，在混淆是做参考使用）（//判断是不是类别 ，如果是uiview+这种系统的类别的话则不去修改类名，否则去修改类名）
 //        @autoreleasepool {
 //            NSError *error = nil;
 //            NSMutableString *projectContent = [NSMutableString stringWithContentsOfFile:projectFilePath encoding:NSUTF8StringEncoding error:&error];
@@ -293,23 +314,42 @@ int main(int argc, const char * argv[]) {
 //            getAllCategory(projectContent, gSourceCodeDir, ignoreDirNames, oldClassNamePrefix, newClassNamePrefix);
 //        }
         
-//        修改图片的中名称
+        //获取所有的方法前部分
+//        @autoreleasepool {
+//            getMethodBackType(gSourceCodeDir,ignoreDirNames);
+//        }
+//        for (NSString *str in methodPreArr) {
+//            printf("%s\n",str.UTF8String);
+////            NSLog(@"获取的浅醉是：%@",str);
+//        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+////        修改图片的中名称
         if (needHandleXcassets) {
             @autoreleasepool {
                 handleXcassetsFiles(gSourceCodeDir);
             }
             printf("修改 Xcassets 中的图片名称完成\n");
         }
-
-        //删除注释和空行
+////
+////        //删除注释和空行
         if (needDeleteComments) {
             @autoreleasepool {
                 deleteComments(gSourceCodeDir, ignoreDirNames);
             }
             printf("删除注释和空行完成\n");
         }
-
-        //修改类名前缀
+//
+//        //修改类名前缀
         if (oldClassNamePrefix && newClassNamePrefix) {
             printf("开始修改类名前缀...\n");
             @autoreleasepool {
@@ -326,8 +366,8 @@ int main(int argc, const char * argv[]) {
             }
             printf("修改类名前缀完成\n");
         }
-
-        //修改工程名称
+//
+//        //修改工程名称
         if (oldProjectName && newProjectName) {
             @autoreleasepool {
                 NSString *dir = [NSString stringWithFormat:@"%@/%@",gSourceCodeDir,gOriginFileName];
@@ -336,37 +376,499 @@ int main(int argc, const char * argv[]) {
             }
             printf("修改工程名完成\n");
         }
-
-        //生成来及代码
-        if (outDirString) {
-            NSMutableString *categoryCallImportString = [NSMutableString string];
-            NSMutableString *categoryCallFuncString = [NSMutableString string];
-            NSMutableString *newClassCallImportString = [NSMutableString string];
-            NSMutableString *newClassCallFuncString = [NSMutableString string];
-
-            recursiveDirectory(gSourceCodeDir, ignoreDirNames, ^(NSString *mFilePath) {
-                @autoreleasepool {
-                    generateSpamCodeFile(outDirString, mFilePath, GSCSourceTypeClass, categoryCallImportString, categoryCallFuncString, newClassCallImportString, newClassCallFuncString);
-                    generateSpamCodeFile(outDirString, mFilePath, GSCSourceTypeCategory, categoryCallImportString, categoryCallFuncString, newClassCallImportString, newClassCallFuncString);
-                }
-            }, ^(NSString *swiftFilePath) {
-                @autoreleasepool {
-                    generateSwiftSpamCodeFile(outDirString, swiftFilePath);
-                }
-            });
-
-            NSString *fileName = [gOutParameterName stringByAppendingString:@"CallHeader.h"];
-            NSString *fileContent = [NSString stringWithFormat:@"%@\n%@return ret;\n}", categoryCallImportString, categoryCallFuncString];
-            [fileContent writeToFile:[outDirString stringByAppendingPathComponent:fileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
-
-            fileName = [kNewClassDirName stringByAppendingString:@"CallHeader.h"];
-            fileContent = [NSString stringWithFormat:@"%@\n%@return ret;\n}", newClassCallImportString, newClassCallFuncString];
-            [fileContent writeToFile:[[outDirString stringByAppendingPathComponent:kNewClassDirName] stringByAppendingPathComponent:fileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
-
-            printf("生成垃圾代码完成\n");
+        
+       
+//        向原始M文件中添加方法，在每一个方法前添加一个新的方法
+        @autoreleasepool {
+            addMethodToMFile(gSourceCodeDir,ignoreDirNames);
         }
+        NSLog(@"方法添加完成");
+        
+        
+//        向原始H文件中添加随机数量的属性
+        @autoreleasepool {
+            addPropertytoOriginalFile(gSourceCodeDir,ignoreDirNames);
+        }
+        NSLog(@"属性添加完成");
+        
+//        生成200个新文件,并在文件中生成新的随机数量的方法和随机数量的属性
+//        if (outDirString) {
+//            for (int i = 0; i < 200; i ++) {
+//                @autoreleasepool {
+//                    createNewFile(outDirString);
+//                }
+//            }
+//        }
+        
+        
+        
+        //生成垃圾代码（这个可以注释不要）
+//        if (outDirString) {
+//            NSMutableString *categoryCallImportString = [NSMutableString string];
+//            NSMutableString *categoryCallFuncString = [NSMutableString string];
+//            NSMutableString *newClassCallImportString = [NSMutableString string];
+//            NSMutableString *newClassCallFuncString = [NSMutableString string];
+//
+//            recursiveDirectory(gSourceCodeDir, ignoreDirNames, ^(NSString *mFilePath) {
+//                @autoreleasepool {
+//                    generateSpamCodeFile(outDirString, mFilePath, GSCSourceTypeClass, categoryCallImportString, categoryCallFuncString, newClassCallImportString, newClassCallFuncString);
+//                    generateSpamCodeFile(outDirString, mFilePath, GSCSourceTypeCategory, categoryCallImportString, categoryCallFuncString, newClassCallImportString, newClassCallFuncString);
+//                }
+//            }, ^(NSString *swiftFilePath) {
+//                @autoreleasepool {
+//                    generateSwiftSpamCodeFile(outDirString, swiftFilePath);
+//                }
+//            });
+//
+//            NSString *fileName = [gOutParameterName stringByAppendingString:@"CallHeader.h"];
+//            NSString *fileContent = [NSString stringWithFormat:@"%@\n%@return ret;\n}", categoryCallImportString, categoryCallFuncString];
+//            [fileContent writeToFile:[outDirString stringByAppendingPathComponent:fileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+//
+//            fileName = [kNewClassDirName stringByAppendingString:@"CallHeader.h"];
+//            fileContent = [NSString stringWithFormat:@"%@\n%@return ret;\n}", newClassCallImportString, newClassCallFuncString];
+//            [fileContent writeToFile:[[outDirString stringByAppendingPathComponent:kNewClassDirName] stringByAppendingPathComponent:fileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+//
+//            printf("生成垃圾代码完成\n");
+//        }
     }
     return 0;
+}
+
+#pragma mark 向原始的H文件中添加属性
+void addPropertytoOriginalFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    // 遍历源代码文件 h 与 m 配对，swift
+    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:sourceCodeDir error:nil];
+    BOOL isDirectory;
+    for (NSString *filePath in files) {
+        NSString *path = [sourceCodeDir stringByAppendingPathComponent:filePath];
+        if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
+            if (![ignoreDirNames containsObject:filePath]) {
+                addPropertytoOriginalFile(path, ignoreDirNames);
+            }
+            continue;
+        }
+        //判断文件是不是存在，存在的话且不是扩展才去添加属性
+        if (([filePath hasSuffix:@".mm"] || [filePath hasSuffix:@".m"]) && ![filePath containsString:@"+"]) {
+            NSString *hPath = [NSString stringWithFormat:@"%@.h",path.stringByDeletingPathExtension];
+            if ([fm fileExistsAtPath:hPath]) {
+                //有这个h文件
+                NSString *content = [NSString stringWithContentsOfFile:hPath encoding:NSUTF8StringEncoding error:nil];
+                NSMutableArray *rangeArr = [NSMutableArray new];
+                NSArray *searchArr = @[@"@end"];
+                for (NSString *searchStr in searchArr) {
+                    NSRange range = [content rangeOfString:searchStr];
+                    while (range.location != NSNotFound || range.length != 0) {
+                        NSLog(@"获取的范围值：%@",NSStringFromRange(range));
+                        [rangeArr addObject:NSStringFromRange(range)];
+                        NSUInteger hadSearchedRange = range.location + range.length;
+                        NSRange resetRange = NSMakeRange(hadSearchedRange, content.length - hadSearchedRange);
+                        range = [content rangeOfString:searchStr options:NSCaseInsensitiveSearch range:resetRange];
+                    }
+                }
+                
+                
+                NSString *finishstr = @"";
+                for (int i = 0; i < rangeArr.count; i ++) {
+                    NSString *rangeStr = rangeArr[i];
+                    NSRange range = NSRangeFromString(rangeStr);
+                    //先插入当前位置之前的内容
+                    if (i == 0) {
+                        //因为创建的属性会有UI类型，所以需要添加这个包
+                        if (![content containsString:@"UIKit/UIKit.h"]) {
+                            finishstr = @"#import <UIKit/UIKit.h>\n";
+                        }
+                        finishstr = [NSString stringWithFormat:@"%@\n%@",finishstr,[content substringToIndex:range.location]];
+                    }
+                    //插入新生成的属性
+                    finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,createMuchProperty()];
+                    //添加当前位置的原内容
+                    if (i == rangeArr.count - 1) {
+                        //如果是最后一个位置
+                        finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,[content substringWithRange:NSMakeRange(range.location, content.length-range.location)]];
+                    } else {
+                        //不是最后一个位置
+                        NSString *nextStr = rangeArr[i+1];
+                        NSRange nextRange = NSRangeFromString(nextStr);
+                        finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,[content substringWithRange:NSMakeRange(range.location, nextRange.location-range.location)]];
+                    }
+                }
+                if (finishstr.length > 0) {
+                    [finishstr writeToFile:hPath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                }
+            }
+        }
+    }
+}
+
+#pragma mark 获取方法的返回值
+void getMethodBackType(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames){
+    NSFileManager *fm = [NSFileManager defaultManager];
+    // 遍历源代码文件 h 与 m 配对，swift
+//    NSMutableArray *preArr = [NSMutableArray new];
+    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:sourceCodeDir error:nil];
+    BOOL isDirectory;
+    for (NSString *filePath in files) {
+        @autoreleasepool {
+            NSString *path = [sourceCodeDir stringByAppendingPathComponent:filePath];
+            if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
+                if (![ignoreDirNames containsObject:filePath]) {
+                    getMethodBackType(path, ignoreDirNames);
+                }
+                continue;
+            }
+            //如果以m或mm结尾的
+            if (([filePath hasSuffix:@".mm"] || [filePath hasSuffix:@".m"]) && ![filePath isEqualToString:@"main.m"]) {
+//                NSLog(@"开始新的文件");
+                NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+
+                NSMutableArray *rangeArr = [NSMutableArray new];
+                NSArray *searchArr = @[@"-(",@"- (",@"-  (",@"-   (",@"+(",@"+ (",@"+  (",@"+   ("];
+                for (NSString *searchStr in searchArr) {
+                    NSRange range = [content rangeOfString:searchStr];
+                    while (range.location != NSNotFound || range.length != 0) {
+//                        NSLog(@"匹配的位置是：%@",NSStringFromRange(range));
+                        NSString *preStr = [content substringWithRange:NSMakeRange(range.location, 30)];
+                        NSArray *preSpreaArr = [preStr componentsSeparatedByString:@")"];
+                        if (preSpreaArr.count > 0) {
+                            preStr = [NSString stringWithFormat:@"%@)",preSpreaArr.firstObject];
+                        }
+                        BOOL isContain =  NO;
+                        for (NSString *forstr in methodPreArr) {
+                            if ([forstr isEqualToString:preStr]) {
+                                isContain = YES;
+                            }
+                        }
+                        if (!isContain) {
+                            [methodPreArr addObject:preStr];
+                        }
+                        
+                        [rangeArr addObject:NSStringFromRange(range)];
+                        NSUInteger hadSearchedRange = range.location + range.length;
+                        NSRange resetRange = NSMakeRange(hadSearchedRange, content.length - hadSearchedRange);
+                        range = [content rangeOfString:searchStr options:NSCaseInsensitiveSearch range:resetRange];
+                    }
+                }
+            }
+        }
+    }
+    
+}
+
+#pragma mark 向m文件中添加方法
+void addMethodToMFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames) {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    // 遍历源代码文件 h 与 m 配对，swift
+    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:sourceCodeDir error:nil];
+    BOOL isDirectory;
+    for (NSString *filePath in files) {
+        @autoreleasepool {
+            NSString *path = [sourceCodeDir stringByAppendingPathComponent:filePath];
+            if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
+                if (![ignoreDirNames containsObject:filePath]) {
+                    addMethodToMFile(path, ignoreDirNames);
+                }
+                continue;
+            }
+            //如果以m或mm结尾的
+            if (([filePath hasSuffix:@".mm"] || [filePath hasSuffix:@".m"]) && ![filePath isEqualToString:@"main.m"]) {
+                
+                NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+                NSLog(@"开始新的文件:%@====%lu",filePath,(unsigned long)content.length);
+                /*
+                 先找出implementat和end的位置，只有在这之间的方法才添加新的方法
+                 */
+                NSMutableArray *containArr = [NSMutableArray new];
+                NSRange lastRange = NSMakeRange(0, content.length);
+                BOOL isContinue =  YES;
+                while (isContinue) {
+                    NSRange range =  [content rangeOfString:@"@implementation" options:NSCaseInsensitiveSearch range:lastRange];
+                    if (range.length == 0) {
+                        isContinue =  NO;
+                        continue;
+                    }
+                    if (range.location != NSNotFound || range.length != 0) {
+                        [containArr addObject:NSStringFromRange(range)];
+                        NSUInteger hadSearchedRange = range.location + range.length;
+                        lastRange = NSMakeRange(hadSearchedRange, content.length - hadSearchedRange);
+                        range = [content rangeOfString:@"@end" options:NSCaseInsensitiveSearch range:lastRange];
+                        if (range.location != NSNotFound || range.length != 0) {
+                            [containArr addObject:NSStringFromRange(range)];
+                            NSUInteger hadSearchedRange = range.location + range.length;
+                            lastRange = NSMakeRange(hadSearchedRange, content.length - hadSearchedRange);
+                            if (hadSearchedRange >= content.length) {
+                                isContinue =  NO;
+                            }
+                        } else {
+                            isContinue = NO;
+                        }
+                    }
+                }
+              
+                //确定方法所在的位置
+                NSMutableArray *rangeArr = [NSMutableArray new];
+                for (NSString *searchStr in allSearchArray) {
+                    NSRange range = [content rangeOfString:searchStr];
+                    while (range.location != NSNotFound || range.length != 0) {
+                        //判断是否在implemenattio和end之间,只有在这个范围内的方法才添加进去
+                        for (int i = 0; i < containArr.count-1; i += 2) {
+                            NSString *firstR = containArr[i];
+                            NSRange firstRan = NSRangeFromString(firstR);
+                            NSString *secR = containArr[i + 1];
+                            NSRange secRan = NSRangeFromString(secR);
+                            if ((range.location < secRan.location) && (range.location > firstRan.location)) {
+                                [rangeArr addObject:NSStringFromRange(range)];
+                            }
+                        }
+                        
+                        NSUInteger hadSearchedRange = range.location + range.length;
+                        NSRange resetRange = NSMakeRange(hadSearchedRange, content.length - hadSearchedRange);
+                        range = [content rangeOfString:searchStr options:NSCaseInsensitiveSearch range:resetRange];
+                    }
+                }
+                //将范围按照从小到大的顺序排序
+                if (rangeArr.count != 0) {
+                    if (rangeArr.count == 1) {
+                        
+                    } else {
+                        for (int i = 0; i < rangeArr.count-1; i ++) {
+                            BOOL isEnd = NO;
+                            for (int j = 0; j < rangeArr.count - i - 1; j ++) {
+                                NSString *secStr = rangeArr[j];
+                                NSRange secRan = NSRangeFromString(secStr);
+                                
+                                NSString *thirStr = rangeArr[j+1];
+                                NSRange thieRan = NSRangeFromString(thirStr);
+                                if (secRan.location > thieRan.location) {
+                                    isEnd = YES;
+                                    [rangeArr exchangeObjectAtIndex:j withObjectAtIndex:j+1];
+                                }
+                            }
+                            if (!isEnd) {
+                                break;
+                            }
+                        }
+                    }
+                 
+                    
+                    NSString *finishstr = @"";
+                    for (int i = 0; i < rangeArr.count; i ++) {
+                        NSString *rangeStr = rangeArr[i];
+                        NSRange range = NSRangeFromString(rangeStr);
+                        //先插入当前位置之前的内容
+                        if (i == 0) {
+                            finishstr = [NSString stringWithFormat:@"%@",[content substringToIndex:range.location]];
+                        }
+                        //插入新生成的方法
+                        finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,createSingleMethod()];
+                        //添加当前位置的原方法
+                        if (i == rangeArr.count - 1) {
+                            //如果是最后一个位置
+                            finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,[content substringWithRange:NSMakeRange(range.location, content.length-range.location)]];
+                        } else {
+                            //不是最后一个位置
+                            NSString *nextStr = rangeArr[i+1];
+                            NSRange nextRange = NSRangeFromString(nextStr);
+                            finishstr = [NSString stringWithFormat:@"%@\n\n%@",finishstr,[content substringWithRange:NSMakeRange(range.location, nextRange.location-range.location)]];
+                        }
+                    }
+                    if (finishstr.length > 0) {
+                        [finishstr writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                    }
+                    
+                }
+               
+            }
+        }
+    }
+}
+
+
+#pragma mark 生成新的.h.m文件
+void createNewFile(NSString *outDirectory) {
+    //确定类名的长度及类名
+    int clasNameLen = arc4random() % 20 + 10;
+    NSString *clasName = @"TTR";
+    for (int i = 0 ; i < clasNameLen; i ++) {
+        clasName = [NSString stringWithFormat:@"%@%@",clasName,chartArray[arc4random() % chartArray.count]];
+    }
+    
+    //hm文件名
+    NSString *HFileName = [NSString stringWithFormat:@"%@.h",clasName];
+    NSString *MFileName = [NSString stringWithFormat:@"%@.m",clasName];
+    //Hm文件内容
+    NSString *HContent = [NSString stringWithFormat:@"#import <Foundation/Foundation.h>\n\n#import <UIKit/UIKit.h>\n\n@interface %@: NSObject",clasName];
+    NSString *MContent = [NSString stringWithFormat:@"#import \"%@\" \n\n@implementation %@: NSObject",HFileName,clasName];
+    //h文件添加属性
+    HContent = [NSString stringWithFormat:@"%@\n\n%@",HContent,createMuchProperty()];
+    //h文件添加方法
+    NSMutableArray *methodArr = [[NSMutableArray alloc] init];
+    int methodNum =  arc4random() % 10 + 10;
+    NSString *methodStr = @"";
+    for (int i = 0 ; i < methodNum; i ++) {
+        NSString *method = createMethod();
+        [methodArr addObject:method];
+        methodStr = [NSString stringWithFormat:@"%@\n%@",methodStr,method];
+    }
+    HContent = [NSString stringWithFormat:@"%@\n\n%@",HContent,methodStr];
+    
+    //m文件添加方法
+    for (NSString *methodString in methodArr) {
+        NSString * subMethod = [methodString stringByReplacingOccurrencesOfString:@";" withString:@"{\n"];
+        //添加方法的内容
+        int methodNum = arc4random() % 10 + 10;
+        for (int i = 0; i < methodNum; i ++) {
+            NSString *str = clasStr();
+            subMethod = [NSString stringWithFormat:@"%@%@\n",subMethod,str];
+        }
+        subMethod = [NSString stringWithFormat:@"%@\n\n}",subMethod];
+        MContent = [NSString stringWithFormat:@"%@\n\n%@",MContent,subMethod];
+    }
+    
+    
+    HContent = [NSString stringWithFormat:@"%@\n\n@end",HContent];
+    MContent = [NSString stringWithFormat:@"%@\n\n@end",MContent];
+    
+    //内容写入文件
+    [HContent writeToFile:[outDirectory stringByAppendingPathComponent:HFileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [MContent writeToFile:[outDirectory stringByAppendingPathComponent:MFileName] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    NSLog(@"生成的文件名称是：%@=======%@",HFileName,MFileName);
+}
+
+NSString * clasStr(void) {
+    
+    //确定返回类型是哪一个类
+    int clasRandomNum =  arc4random() % backArray.count;
+    NSString *clasString = [NSString stringWithFormat:@"%@",backArray[clasRandomNum]];
+    
+    //确定类名的长度及类名
+    int clasNameLen = arc4random() % backArray.count + 5;
+    NSString *clasName = @"HCL";
+    for (int i = 0 ; i < clasNameLen; i ++) {
+        clasName = [NSString stringWithFormat:@"%@%@",clasName,chartArray[arc4random() % chartArray.count]];
+    }
+    
+    //初始化
+    if ([clasString isEqualToString:@"NSArray"]) {
+        NSString *initStr = @"@[";
+        int arrLen = arc4random() % chartArray.count + 10;
+        for (int i = 0; i < arrLen; i ++) {
+            initStr = [NSString stringWithFormat:@"%@@\"%@\",",initStr,chartArray[arc4random() % chartArray.count]];
+        }
+        initStr = [NSString stringWithFormat:@"%@]",initStr];
+        clasString = [NSString stringWithFormat:@"    %@ *%@ = %@;",clasString,clasName,initStr];
+        
+        NSString *logStr = [NSString stringWithFormat:@"%@.count",clasName];
+        logStr = [NSString stringWithFormat:@"NSLog(@\"^?\",(unsigned long)%@);",logStr];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"^" withString:@"%"];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"?" withString:@"lu"];
+        
+        clasString = [NSString stringWithFormat:@"%@\n    %@",clasString,logStr];
+        
+    } else if ([clasString isEqualToString:@"NSString"]) {
+        NSString *initStr = @"@\"";
+        int arrLen = arc4random() % chartArray.count + 20;
+        for (int i = 0; i < arrLen; i ++) {
+            initStr = [NSString stringWithFormat:@"%@%@",initStr,chartArray[arc4random() % chartArray.count]];
+        }
+        initStr = [NSString stringWithFormat:@"%@\"",initStr];
+        clasString = [NSString stringWithFormat:@"    %@ *%@ = %@;",clasString,clasName,initStr];
+        
+        NSString *logStr = [NSString stringWithFormat:@"%@.length",clasName];
+        logStr = [NSString stringWithFormat:@"NSLog(@\"^?\",(unsigned long)%@);",logStr];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"^" withString:@"%"];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"?" withString:@"lu"];
+        
+        NSString *subStr = [NSString stringWithFormat:@"[%@ isEqualToString:@\"%@\"];",clasName,clasName];
+        
+        clasString = [NSString stringWithFormat:@"%@\n    %@\n    %@",clasString,logStr,subStr];
+    } else if ([clasString isEqualToString:@"NSDictionary"]) {
+        NSString *initStr = @"@{";
+        int arrLen = arc4random() % chartArray.count + 20;
+        for (int i = 0; i < arrLen; i ++) {
+            NSString *keyStr = [NSString stringWithFormat:@"@\"%@\":",chartArray[arc4random() % chartArray.count]];
+            if ([initStr containsString:keyStr]) {
+                continue;
+            }
+            initStr = [NSString stringWithFormat:@"%@%@@\"%@\",",initStr,keyStr,chartArray[arc4random() % chartArray.count]];
+        }
+        initStr = [NSString stringWithFormat:@"%@}",initStr];
+        clasString = [NSString stringWithFormat:@"    %@ *%@ = %@;",clasString,clasName,initStr];
+        
+        NSString *logStr = [NSString stringWithFormat:@"%@.count",clasName];
+        logStr = [NSString stringWithFormat:@"NSLog(@\"^?\",(unsigned long)%@);",logStr];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"^" withString:@"%"];
+        logStr = [logStr stringByReplacingOccurrencesOfString:@"?" withString:@"lu"];
+        
+        clasString = [NSString stringWithFormat:@"%@\n    %@",clasString,logStr];
+    } else {
+        clasString = [NSString stringWithFormat:@"    %@ *%@ = [[%@ alloc] init];",clasString,clasName,clasString];
+    }
+    return clasString;
+}
+
+#pragma mark 直接在m文件创建一个新方法
+NSString * createSingleMethod(void) {
+
+    int randomNum = arc4random() % chartArray.count + 20;
+    NSString *str = @"HCL";
+    for (int i  = 0; i < randomNum; i ++) {
+        str = [NSString stringWithFormat:@"%@%@",str,chartArray[arc4random()%chartArray.count]];
+    }
+    NSString *methodStr = [NSString stringWithFormat:@"- (void)%@ {\n\n",str];
+    int methodNum = arc4random() % 10 + 5;
+    for (int i = 0; i < methodNum; i ++) {
+        NSString *str = clasStr();
+        methodStr = [NSString stringWithFormat:@"%@%@\n",methodStr,str];
+    }
+    methodStr = [NSString stringWithFormat:@"%@\n}",methodStr];
+    return methodStr;
+}
+
+#pragma mark h文件创建单个方法
+NSString * createMethod(void) {
+
+    int randomNum = arc4random() % chartArray.count + 20;
+    NSString *str = @"HCL";
+    for (int i  = 0; i < randomNum; i ++) {
+        str = [NSString stringWithFormat:@"%@%@",str,chartArray[arc4random()%chartArray.count]];
+    }
+    
+    NSString *methodStr = [NSString stringWithFormat:@"- (void)%@;",str];
+    return methodStr;
+}
+
+#pragma mark 生成多个属性
+NSString * createMuchProperty(void)  {
+    int arcNum = arc4random() % 20 + 10;
+    NSString *str = @"";
+    for (int i = 0; i < arcNum; i ++) {
+        NSString *string = createSingleProperty();
+        str = [NSString stringWithFormat:@"%@\n%@",str,string];
+    }
+    return str;
+}
+
+#pragma mark 单独创建一个属性
+NSString * createSingleProperty(void) {
+    NSString *backStr = @"";
+    
+    //属性名称
+    //确定类名的长度及类名
+    int clasNameLen = arc4random() % 20 + 5;
+    NSString *clasName = @"HCL";
+    for (int i = 0 ; i < clasNameLen; i ++) {
+        clasName = [NSString stringWithFormat:@"%@%@",clasName,chartArray[arc4random() % chartArray.count]];
+    }
+    
+    
+    NSString *clasStr = propertyArray[arc4random() % propertyArray.count];
+    if ([clasStr isEqualToString:@"int"] || [clasStr isEqualToString:@"BOOL"] || [clasStr isEqualToString:@"NSInteger"]) {
+        backStr = [NSString stringWithFormat:@"@property(assign,nonatomic) %@ %@;",clasStr,clasName];
+    } else {
+        backStr = [NSString stringWithFormat:@"@property(strong,nonatomic) %@ *%@;",clasStr,clasName];
+    }
+    return backStr;
 }
 
 #pragma mark - 生成垃圾代码
@@ -1069,4 +1571,3 @@ void modifyClassNamePrefix(NSMutableString *projectContent, NSString *sourceCode
 //        regularReplacement(projectContent, regularExpression, newClassName);
     }
 }
-
