@@ -52,15 +52,15 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/changtianyou/Desktop/c-fly2_1"
+            argument = "/Users/changtianyou/Desktop/0000"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-modifyProjectName  SDJC_hx&gt;EomFly"
+            argument = "-modifyProjectName  AgGHUProject&gt;TTTTTTT"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-modifyClassNamePrefix /Users/changtianyou/Desktop/c-fly2_1/CFLY2-ios/SDJC_hx.xcodeproj   KKKK&gt;EOMFLY"
+            argument = "-modifyClassNamePrefix    /Users/changtianyou/Desktop/0000/AgGHUProject/AgGHUProject.xcodeproj  KKKK&gt;EOMFLY"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -80,7 +80,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-originFileName  CFLY2-ios"
+            argument = "-originFileName  AgGHUProject"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-changeDirectorName   /Users/changtianyou/Desktop/0000/AgGHUProject/AgGHUProject"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

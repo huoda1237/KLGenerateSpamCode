@@ -39,6 +39,7 @@ void addMethodToMFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirName
 NSString * createSingleMethod(void);
 void addPropertytoOriginalFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
 void getMethodBackType(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
+void changeDirectorName (NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
 
 NSString *gOutParameterName = nil;
 NSString *gSpamCodeFuncationCallName = nil;
@@ -165,6 +166,7 @@ int main(int argc, const char * argv[]) {
         NSString *projectFilePath = nil;
         NSString *oldClassNamePrefix = nil;
         NSString *newClassNamePrefix = nil;
+        NSString *changeDirName = nil;
         
         NSFileManager *fm = [NSFileManager defaultManager];
         for (NSInteger i = 1; i < arguments.count; i++) {
@@ -299,6 +301,12 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"忽略的文件夹：%@",ignoreDirNames);
                 continue;
             }
+            
+            if ([argument isEqualToString:@"-changeDirectorName"]) {
+                changeDirName = arguments[1+i];
+                NSLog(@"修改哪个文件夹下文件名称：%@",changeDirName);
+                continue;
+            }
         }
         
         
@@ -334,62 +342,68 @@ int main(int argc, const char * argv[]) {
         
         
 ////        修改图片的中名称
-        if (needHandleXcassets) {
-            @autoreleasepool {
-                handleXcassetsFiles(gSourceCodeDir);
-            }
-            printf("修改 Xcassets 中的图片名称完成\n");
-        }
+//        if (needHandleXcassets) {
+//            @autoreleasepool {
+//                handleXcassetsFiles(gSourceCodeDir);
+//            }
+//            printf("修改 Xcassets 中的图片名称完成\n");
+//        }
 ////
 ////        //删除注释和空行
-        if (needDeleteComments) {
-            @autoreleasepool {
-                deleteComments(gSourceCodeDir, ignoreDirNames);
-            }
-            printf("删除注释和空行完成\n");
-        }
+//        if (needDeleteComments) {
+//            @autoreleasepool {
+//                deleteComments(gSourceCodeDir, ignoreDirNames);
+//            }
+//            printf("删除注释和空行完成\n");
+//        }
 //
 //        //修改类名前缀
-        if (oldClassNamePrefix && newClassNamePrefix) {
-            printf("开始修改类名前缀...\n");
-            @autoreleasepool {
-                NSError *error = nil;
-                NSMutableString *projectContent = [NSMutableString stringWithContentsOfFile:projectFilePath encoding:NSUTF8StringEncoding error:&error];
-                NSLog(@"修改后缀名文件长度是：%lu",(unsigned long)projectContent.length);
-                if (error) {
-                    printf("打开工程文件 %s 失败：%s\n", projectFilePath.UTF8String, error.localizedDescription.UTF8String);
-                    return 1;
-                }
-                NSLog(@"修改浅前缀需要忽略的文件是：%@",ignoreDirNames);
-                modifyClassNamePrefix(projectContent, gSourceCodeDir, ignoreDirNames, oldClassNamePrefix, newClassNamePrefix);
-                [projectContent writeToFile:projectFilePath atomically:YES encoding:NSUTF8StringEncoding error:nil];
-            }
-            printf("修改类名前缀完成\n");
-        }
+//        if (oldClassNamePrefix && newClassNamePrefix) {
+//            printf("开始修改类名前缀...\n");
+//            @autoreleasepool {
+//                NSError *error = nil;
+//                NSMutableString *projectContent = [NSMutableString stringWithContentsOfFile:projectFilePath encoding:NSUTF8StringEncoding error:&error];
+//                NSLog(@"修改后缀名文件长度是：%lu",(unsigned long)projectContent.length);
+//                if (error) {
+//                    printf("打开工程文件 %s 失败：%s\n", projectFilePath.UTF8String, error.localizedDescription.UTF8String);
+//                    return 1;
+//                }
+//                NSLog(@"修改浅前缀需要忽略的文件是：%@",ignoreDirNames);
+//                modifyClassNamePrefix(projectContent, gSourceCodeDir, ignoreDirNames, oldClassNamePrefix, newClassNamePrefix);
+//                [projectContent writeToFile:projectFilePath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+//            }
+//            printf("修改类名前缀完成\n");
+//        }
 //
 //        //修改工程名称
-        if (oldProjectName && newProjectName) {
-            @autoreleasepool {
-                NSString *dir = [NSString stringWithFormat:@"%@/%@",gSourceCodeDir,gOriginFileName];
-                NSLog(@"开始修改工程名称：%@======%@",dir,gSourceCodeDir);
-                modifyProjectName(dir, oldProjectName, newProjectName);
-            }
-            printf("修改工程名完成\n");
-        }
+//        if (oldProjectName && newProjectName) {
+//            @autoreleasepool {
+//                NSString *dir = [NSString stringWithFormat:@"%@/%@",gSourceCodeDir,gOriginFileName];
+//                NSLog(@"开始修改工程名称：%@======%@",dir,gSourceCodeDir);
+//                modifyProjectName(dir, oldProjectName, newProjectName);
+//            }
+//            printf("修改工程名完成\n");
+//        }
         
        
 //        向原始M文件中添加方法，在每一个方法前添加一个新的方法
-        @autoreleasepool {
-            addMethodToMFile(gSourceCodeDir,ignoreDirNames);
-        }
-        NSLog(@"方法添加完成");
+//        @autoreleasepool {
+//            addMethodToMFile(gSourceCodeDir,ignoreDirNames);
+//        }
+//        NSLog(@"方法添加完成");
         
         
 //        向原始H文件中添加随机数量的属性
-        @autoreleasepool {
-            addPropertytoOriginalFile(gSourceCodeDir,ignoreDirNames);
-        }
-        NSLog(@"属性添加完成");
+//        @autoreleasepool {
+//            addPropertytoOriginalFile(gSourceCodeDir,ignoreDirNames);
+//        }
+//        NSLog(@"属性添加完成");
+        
+        //修改文件夹名（这个最好是手动来修改，最容易出问题）（如果修改了pch所在的文件夹名称，则需要将pch放在工程目录下，这样就不会报错了）
+//        @autoreleasepool {
+//            changeDirectorName(changeDirName,ignoreDirNames);
+//        }
+//        NSLog(@"文件夹名称修改完成");
         
 //        生成200个新文件,并在文件中生成新的随机数量的方法和随机数量的属性
 //        if (outDirString) {
@@ -432,6 +446,38 @@ int main(int argc, const char * argv[]) {
 //        }
     }
     return 0;
+}
+
+
+#pragma mark 修改文件夹名称
+void changeDirectorName (NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames){
+    NSFileManager *fm = [NSFileManager defaultManager];
+    // 遍历源代码文件 h 与 m 配对，swift
+    NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:sourceCodeDir error:nil];
+    BOOL isDirectory;
+    for (NSString *filePath in files) {
+        NSString *path = [sourceCodeDir stringByAppendingPathComponent:filePath];
+        NSLog(@"文件地址：%@\n",path);
+        if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
+            if (![ignoreDirNames containsObject:filePath]) {
+                NSArray *array = [filePath componentsSeparatedByString:@"."];
+                if (array.count > 1) {
+                    //有后缀不修改
+                    changeDirectorName(path, ignoreDirNames);
+                } else {
+                    int randomNum = arc4random() % 20 + 5;
+                    NSString *str = @"";
+                    for (int i  = 0; i < randomNum; i ++) {
+                        str = [NSString stringWithFormat:@"%@%@",str,chartArray[arc4random()%chartArray.count]];
+                    }
+                    NSString *path_new = [sourceCodeDir stringByAppendingPathComponent:str];
+                    renameFile(path, path_new);
+                    changeDirectorName(path_new, ignoreDirNames);
+                }
+            }
+            continue;
+        }
+    }
 }
 
 #pragma mark 向原始的H文件中添加属性
@@ -1387,7 +1433,7 @@ void modifyProjectName(NSString *projectDir, NSString *oldName, NSString *newNam
     // 改源文件夹名称
     if ([fm fileExistsAtPath:projectDir isDirectory:&isDirectory] && isDirectory) {
         NSString *str = [projectDir.stringByDeletingLastPathComponent stringByAppendingPathComponent:newName];
-        NSLog(@"修改文件名称啦啦啦啦：%@=======%@",str,sourceCodeDirPath);
+        NSLog(@"修改文件名称啦啦啦啦11111：%@=======%@",str,projectDir);
         renameFile(projectDir, str);
     }
 }
